@@ -46,8 +46,13 @@ export interface GameDefinition {
  * Which template revision this game was created from. When a shell fix lands in
  * game-template, this field tells you which games are worth updating by hand —
  * the template is copied, not inherited.
+ *
+ * Still 0.9.0: the automated pipeline is green end to end, but the manual pass
+ * on an emulator and a physical phone (docs/architecture.md §10) has not been
+ * done. Browser tests do not prove an Android build works. Bump to 1.0.0 only
+ * after that checklist is ticked off on a real device.
  */
-export const TEMPLATE_VERSION = '1.0.0';
+export const TEMPLATE_VERSION = '0.9.0';
 
 export const GAME: GameDefinition = {
   id: 'game-template',

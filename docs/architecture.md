@@ -441,6 +441,12 @@ Capacitor 8 требует Android API 24+ и compile/target SDK 36, а Android 
 
 Только после этого — `TEMPLATE_VERSION = 1.0.0`.
 
+**Текущий статус: `TEMPLATE_VERSION = '0.9.0'`.** Автоматика зелёная целиком,
+ручная проверка на устройстве не проводилась.
+
+Локально Android собрать нельзя: в окружении нет Java и Android SDK. Первый
+реальный `assembleDebug` произойдёт в GitHub Actions.
+
 ---
 
 ## 11. Процесс создания новой игры
