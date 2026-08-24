@@ -46,9 +46,17 @@ jobs:
           retention-days: 7
 
       # Meaningless in the template itself, where the placeholders are the point.
+      # Keyed on the package name, not the repository name: a template forked as
+      # game-template-, game-template-2 or anything else is still the template.
+      # npm run new-game is what rewrites this name, and it is also what replaces
+      # the placeholders — so the two can never disagree.
       - name: Template placeholders were replaced
-        if: github.event.repository.name != 'game-template'
-        run: npm run verify-template
+        run: |
+          if [ "$(node -p "require('./package.json').name")" = "game-template" ]; then
+            echo "Package is still named game-template — placeholders are expected here. Skipping."
+            exit 0
+          fi
+          npm run verify-template
 
   android:
     name: assembleDebug
