@@ -33,6 +33,10 @@ android/capacitor-cordova-android-plugins/
 *.keystore
 *.jks
 
+# Synced from node_modules/phaser/skills by scripts/sync-phaser-skills.ts on
+# postinstall. Belongs to the installed Phaser version, not to this repository.
+.claude/skills/
+
 .DS_Store
 Thumbs.db
 .idea/

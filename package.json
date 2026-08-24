@@ -23,7 +23,9 @@
     "verify-template": "tsx scripts/check-placeholders.ts",
     "cap:sync": "npm run build && cap sync android",
     "android:add": "cap add android",
-    "android:open": "cap open android"
+    "android:open": "cap open android",
+    "postinstall": "tsx scripts/sync-phaser-skills.ts || exit 0",
+    "skills:sync": "tsx scripts/sync-phaser-skills.ts"
   },
   "dependencies": {
     "@capacitor/android": "8.5.0",

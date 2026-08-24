@@ -28,7 +28,19 @@ Kept from the architecture document. What changed is the mitigation: Phaser
 of them, including `v3-to-v4-migration` and `v4-new-features`. They are
 versioned with the exact Phaser installed, which a third-party plugin cannot be.
 
-**Cost:** they are not auto-loaded; `CLAUDE.md` points at them instead.
+`scripts/sync-phaser-skills.ts` copies them into `.claude/skills/phaser-*` on
+postinstall, so an agent picks them up automatically and they are re-synced
+whenever Phaser is upgraded. The copies are git-ignored — they belong to the
+installed version, not to the repository.
+
+The third-party alternative, `Yakoub-ai/phaser4-gamedev`, was checked and not
+installed: it targets Phaser **4.0.0-rc.7** while this project runs 4.2.1, so
+its skills would teach an older API than the one installed — the exact failure
+it exists to prevent. Its genuinely distinct piece is a PreToolUse hook that
+blocks v3 API before a file is written; that hook is worth revisiting if the
+project keeps drifting into v3 idioms.
+
+**Cost:** 28 extra skill descriptions in an agent's context in this repository.
 **Reversal:** falling back to Phaser 3 still does not touch shell, contract,
 progress, signals or CI.
 

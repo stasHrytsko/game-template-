@@ -45,9 +45,13 @@ Phaser, cannot import anything under `mechanic/`, and cannot touch
 
 ## Phaser 4
 
-`phaser@4.2.1` ships official skills in `node_modules/phaser/skills/`. When
-unsure about an API, read the relevant `SKILL.md` there instead of guessing —
-in particular `v3-to-v4-migration` and `v4-new-features`, because most Phaser
+`phaser@4.2.1` ships 28 official skills. `npm install` copies them into
+`.claude/skills/phaser-*` (via `scripts/sync-phaser-skills.ts`), so they are
+picked up automatically — no plugin, no marketplace, and always matching the
+installed Phaser version.
+
+When unsure about an API, use those skills instead of guessing — in particular
+`phaser-v3-to-v4-migration` and `phaser-v4-new-features`, because most Phaser
 code in the wild is v3 and v3 answers are frequently wrong here.
 
 Known v4 breakages: pipelines → render nodes, FX/masks → filters,
