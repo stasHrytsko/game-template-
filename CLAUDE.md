@@ -18,7 +18,9 @@ Android game template: DOM shell + Phaser mechanic + Capacitor.
 - Do not change `src/shell-contract.ts` without approval. Every field added
   there is a field every future game has to care about.
 - Read `docs/rules.md` before writing mechanic code. If a rule is missing or
-  ambiguous, stop and ask — do not invent it.
+  ambiguous, stop and ask — do not invent it. `docs/rules-template.md` lists
+  what a complete rules document must answer; use it to name precisely what is
+  missing instead of reporting a vague "unclear".
 
 The linter enforces the boundaries; it is not a style preference. `src/mechanic/engine/**`
 cannot import Phaser, the DOM, storage or `fetch`. `src/shell/**` cannot import
