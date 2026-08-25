@@ -31,6 +31,9 @@ npm run build && npx cap add android
 | `npm run cap:sync` | сборка + синхронизация в android/ |
 | `npm run android:open` | открыть проект в Android Studio |
 
+Сборка APK локально — [`docs/android-setup.md`](./docs/android-setup.md)
+(Java и Android SDK без прав администратора).
+
 ## Что уже готово
 
 Главный экран, онбординг с версионированием, сетка уровней с полосами
