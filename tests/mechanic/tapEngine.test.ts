@@ -32,6 +32,16 @@ describe('tapEngine', () => {
     expect(state.taps).toBe(2);
   });
 
+  it('counts a tap on empty board without clearing anything', () => {
+    // docs/rules.md rule 3. The renderer reports a miss as targetId: null —
+    // this used to be expressible in the engine but unreachable from the scene,
+    // which only ever fired on a circle.
+    const state = tapEngine.apply(tapEngine.create(level), { type: 'tap', targetId: null });
+    expect(state.remaining).toEqual(['a', 'b']);
+    expect(state.taps).toBe(1);
+    expect(tapEngine.isComplete(state)).toBe(false);
+  });
+
   it('is complete only once every target is cleared', () => {
     let state = tapEngine.create(level);
     state = tapEngine.apply(state, { type: 'tap', targetId: 'a' });

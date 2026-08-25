@@ -148,8 +148,12 @@ export class ShellApp {
       case 'menu':
         return false;
       case 'rules':
-        if (this.#rulesReturn === 'menu') this.goMenu();
-        else this.goLevelSelect();
+        // Always the menu, even when the rules were opened as the first-run
+        // gate on the way to the levels. Sending back "forward" past a gate the
+        // player never acknowledged is not what a back button means — and the
+        // onboarding version stays unsaved, so they would be shown it again
+        // anyway. Reaching the levels is what "Понятно, играем" is for.
+        this.goMenu();
         return true;
       case 'levels':
         this.goMenu();
@@ -183,7 +187,8 @@ export class ShellApp {
     this.#state = withLevelCompleted(this.#state, levelIndex);
     await this.#deps.progress.save(this.#state);
 
-    const { game, levelCount } = { game: this.#deps.game, levelCount: this.#deps.game.levelCount };
+    const { game } = this.#deps;
+    const { levelCount } = game;
     const finishedEverything = allLevelsCompleted(this.#state, levelCount) && !this.#state.moreAsked;
 
     if (finishedEverything) {
@@ -246,7 +251,12 @@ export class ShellApp {
     await this.#deps.progress.save(this.#state);
 
     if (wantsMore) {
-      await this.#deps.signal.send({ event: 'more_yes', gameId: this.#deps.game.id });
+      // Deliberately not awaited. SignalSink promises to resolve even when
+      // delivery fails, so awaiting it can only ever delay the screen — by up
+      // to the sink's timeout on a bad connection, during which the button the
+      // player just tapped looks dead. The signal is a data point; the player's
+      // next screen is the product.
+      void this.#deps.signal.send({ event: 'more_yes', gameId: this.#deps.game.id });
     }
 
     this.goLevelSelect();

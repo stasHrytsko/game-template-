@@ -26,8 +26,11 @@ export function createMechanicHost(): MechanicHost {
       hud.dataset['testid'] = 'mechanic-hud';
 
       const onStateChange = (state: LevelState): void => {
-        hud.textContent = `Осталось: ${String(state.remaining.length)}`;
+        hud.textContent = `Осталось: ${String(state.remaining.length)}  ·  тапов: ${String(state.taps)}`;
         hud.dataset['remaining'] = String(state.remaining.length);
+        // Exposed so the E2E suite can assert rule 3 — a tap on empty board
+        // counts — which is otherwise invisible from outside the canvas.
+        hud.dataset['taps'] = String(state.taps);
       };
 
       const scene = new LevelScene({

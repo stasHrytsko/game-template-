@@ -23,7 +23,12 @@ Android game template: DOM shell + Phaser mechanic + Capacitor.
 The linter enforces the boundaries; it is not a style preference. `src/mechanic/engine/**`
 cannot import Phaser, the DOM, storage or `fetch`. `src/shell/**` cannot import
 Phaser, cannot import anything under `mechanic/`, and cannot touch
-`window.localStorage`. If a rule is in your way, that is the design talking.
+`localStorage` — bare, or via `window` / `globalThis` / `self`. If a rule is in
+your way, that is the design talking.
+
+Those rules are themselves under test in `tests/tooling/lintRules.test.ts`: a
+boundary is only as real as the lint error that rejects a violation. Add a rule
+there when you add a boundary.
 
 ## Tech
 

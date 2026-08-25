@@ -55,10 +55,19 @@
   и обращение к `window`, `document`, `localStorage`, `fetch`;
 - `src/shell/**` → импорт Phaser, импорт чего угодно из `mechanic/`,
   обращение к `localStorage`;
-- `src/shell/screens/**` → обращение к `fetch`.
+- `src/shell/screens/**` и `src/shell/progress/**` → обращение к `fetch`
+  (единственное место в shell, которому `fetch` разрешён, — `signal/`).
 
-Плюс `vitest.config.ts` гоняет тесты механики в окружении `node` **без DOM**:
-если чистая функция потянется к `document`, тест упадёт, а не пройдёт молча.
+Каждый из этих запретов закрыт **и на голом идентификаторе, и на свойстве**:
+`no-restricted-globals` видит только `localStorage`, но не `window.localStorage`,
+поэтому рядом стоит `no-restricted-syntax` (см. `bannedAsProperty`). Правило,
+которое обходится приставкой `window.`, — не граница, а комментарий.
+
+Плюс два независимых страховочных слоя: `vitest.config.ts` гоняет тесты механики
+в окружении `node` **без DOM** — если чистая функция потянется к `document`,
+тест упадёт, а не пройдёт молча; а `tests/tooling/lintRules.test.ts` прогоняет
+сам ESLint по нарушающим фикстурам, потому что граница ровно настолько реальна,
+насколько её отвергает линтер.
 
 ---
 
@@ -252,7 +261,7 @@ export interface GameDefinition {
   signal: { topic: string };   // ntfy topic
 }
 
-export const TEMPLATE_VERSION = '1.0.0';
+export const TEMPLATE_VERSION = '0.9.0';
 ```
 
 Про `levelCount`: формат «всегда 9» остаётся сознательным решением. Но число

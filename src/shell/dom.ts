@@ -49,7 +49,3 @@ export function button(options: ButtonOptions): HTMLButtonElement {
   node.addEventListener('click', options.onClick);
   return node;
 }
-
-export function clear(node: HTMLElement): void {
-  node.replaceChildren();
-}

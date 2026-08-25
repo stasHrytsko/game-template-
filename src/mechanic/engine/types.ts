@@ -30,7 +30,8 @@ export interface Level {
 
 export interface TapInput {
   readonly type: 'tap';
-  readonly targetId: string;
+  /** null when the tap landed on empty board — a miss still counts as a tap. */
+  readonly targetId: string | null;
 }
 
 export interface LevelState {

@@ -45,3 +45,25 @@ export const GENERATED_ANDROID_FILES: readonly string[] = [
 ];
 
 export const SCANNED_FILES: readonly string[] = [...TEMPLATE_FILES, ...GENERATED_ANDROID_FILES];
+
+/**
+ * Escape a substituted value for the syntax of the file it lands in.
+ *
+ * The game title is the one free-form value new-game.ts writes — appId, slug and
+ * topic are all validated down to safe charsets first. It lands in three
+ * different syntaxes, so it is escaped per target rather than restricted:
+ * "Bob's Puzzle" is a perfectly good name for a game, and a raw substitution
+ * turned it into `appName: 'Bob's Puzzle'` — a repository that does not compile,
+ * produced by the very first command a new game runs.
+ */
+export function escapeFor(relativePath: string, value: string): string {
+  if (relativePath.endsWith('.json')) {
+    // Strip the quotes JSON.stringify adds — the token already sits inside them.
+    return JSON.stringify(value).slice(1, -1);
+  }
+  if (relativePath.endsWith('.html')) {
+    return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  // .ts — every token in these files sits inside a single-quoted literal.
+  return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
