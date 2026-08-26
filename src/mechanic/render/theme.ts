@@ -9,16 +9,12 @@ export interface SceneTheme {
   background: number;
   target: number;
   targetStroke: number;
-  cleared: number;
-  text: string;
 }
 
 const FALLBACK: SceneTheme = {
   background: 0x171a21,
   target: 0x5b8cff,
   targetStroke: 0x7aa2ff,
-  cleared: 0x333a46,
-  text: '#98a2b3',
 };
 
 function hexToNumber(value: string, fallback: number): number {
@@ -35,7 +31,5 @@ export function readTheme(root: Element = document.documentElement): SceneTheme 
     background: hexToNumber(token('--surface'), FALLBACK.background),
     target: hexToNumber(token('--accent'), FALLBACK.target),
     targetStroke: hexToNumber(token('--accent-hover'), FALLBACK.targetStroke),
-    cleared: hexToNumber(token('--locked'), FALLBACK.cleared),
-    text: token('--text-muted').trim() || FALLBACK.text,
   };
 }

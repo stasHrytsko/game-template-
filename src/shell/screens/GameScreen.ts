@@ -10,7 +10,6 @@ export interface GameScreen extends Screen {
   readonly surface: HTMLElement;
   setStats(text: string): void;
   showOverlay(overlay: HTMLElement): void;
-  hideOverlay(): void;
 }
 
 export function GameScreen(levelIndex: number, handlers: GameScreenHandlers): GameScreen {
@@ -44,10 +43,6 @@ export function GameScreen(levelIndex: number, handlers: GameScreenHandlers): Ga
       overlay?.remove();
       overlay = next;
       element.append(next);
-    },
-    hideOverlay(): void {
-      overlay?.remove();
-      overlay = null;
     },
     destroy(): void {
       overlay?.remove();

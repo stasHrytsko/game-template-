@@ -3,6 +3,33 @@ import js from '@eslint/js';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
+/**
+ * Ban a global as a *property* as well as a bare identifier.
+ *
+ * `no-restricted-globals` only ever sees the bare form, so `window.localStorage`
+ * used to walk straight past the rule that exists to forbid it — the boundary
+ * was documented as enforced while a single `window.` prefix disabled it. These
+ * selectors close the dotted and the bracketed form; pair them with
+ * `no-restricted-globals` for the bare one.
+ *
+ * @param {string} name
+ * @param {string} message
+ * @returns {{ selector: string, message: string }[]}
+ */
+function bannedAsProperty(name, message) {
+  const holders = '/^(window|globalThis|self)$/';
+  return [
+    {
+      selector: `MemberExpression[computed=false][object.name=${holders}][property.name='${name}']`,
+      message,
+    },
+    {
+      selector: `MemberExpression[computed=true][object.name=${holders}][property.value='${name}']`,
+      message,
+    },
+  ];
+}
+
 export default tseslint.config(
   {
     ignores: [
@@ -61,6 +88,15 @@ export default tseslint.config(
         { name: 'localStorage', message: 'engine must stay pure — no storage.' },
         { name: 'fetch', message: 'engine must stay pure — no I/O.' },
       ],
+      'no-restricted-syntax': [
+        'error',
+        ...bannedAsProperty('window', 'engine must stay pure — no DOM.'),
+        ...bannedAsProperty('document', 'engine must stay pure — no DOM.'),
+        ...bannedAsProperty('localStorage', 'engine must stay pure — no storage.'),
+        // The node test environment catches a stray `document`, but not this:
+        // fetch exists in Node, so an I/O call here would pass lint and tests.
+        ...bannedAsProperty('fetch', 'engine must stay pure — no I/O.'),
+      ],
     },
   },
 
@@ -84,17 +120,31 @@ export default tseslint.config(
           message: 'use ProgressRepository — Android WebView may clear localStorage.',
         },
       ],
+      'no-restricted-syntax': [
+        'error',
+        ...bannedAsProperty(
+          'localStorage',
+          'use ProgressRepository — Android WebView may clear localStorage.',
+        ),
+      ],
     },
   },
 
   {
-    // Shell screens must not reach the network directly; signals go through SignalSink.
+    // Shell screens and progress must not reach the network directly; signals
+    // go through SignalSink. NtfySignalSink itself lives in src/shell/signal
+    // and is the one place in the shell allowed to call fetch.
     files: ['src/shell/screens/**/*.ts', 'src/shell/progress/**/*.ts'],
     rules: {
       'no-restricted-globals': [
         'error',
         { name: 'fetch', message: 'use SignalSink — screens do not talk to the network.' },
         { name: 'localStorage', message: 'use ProgressRepository.' },
+      ],
+      'no-restricted-syntax': [
+        'error',
+        ...bannedAsProperty('fetch', 'use SignalSink — screens do not talk to the network.'),
+        ...bannedAsProperty('localStorage', 'use ProgressRepository.'),
       ],
     },
   },

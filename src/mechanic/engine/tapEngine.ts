@@ -17,7 +17,7 @@ export const tapEngine: MechanicEngine<LevelState, TapInput, Level> = {
   },
 
   apply(state: LevelState, input: TapInput): LevelState {
-    if (!state.remaining.includes(input.targetId)) {
+    if (input.targetId === null || !state.remaining.includes(input.targetId)) {
       // Tapping empty space still counts as a tap — the score has to be honest.
       return { ...state, taps: state.taps + 1 };
     }

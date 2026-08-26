@@ -35,7 +35,17 @@ android/capacitor-cordova-android-plugins/
 
 # Synced from node_modules/phaser/skills by scripts/sync-phaser-skills.ts on
 # postinstall. Belongs to the installed Phaser version, not to this repository.
-.claude/skills/
+#
+# Scoped to phaser-* rather than the whole directory: a skill written for *this*
+# game belongs in .claude/skills/ next to them, and ignoring the directory
+# wholesale made such a skill silently uncommittable.
+.claude/skills/phaser-*/
+.claude/skills/README.md
+
+# Throwaway files tests/tooling/lintRules.test.ts writes into the directories the
+# boundary rules govern, then deletes. Ignored so an interrupted run cannot leave
+# one behind in a commit — a lingering one still fails lint, which is the point.
+**/__boundary_fixture.ts
 
 .DS_Store
 Thumbs.db

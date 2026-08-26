@@ -31,6 +31,8 @@ export class LevelScene extends Phaser.Scene {
    * sits at (r, r).
    */
   readonly #hitAreas = new Map<string, Phaser.Geom.Circle>();
+  /** Reverse of #circles, so a hit object can be named back to a target id. */
+  readonly #targetIds = new Map<Phaser.GameObjects.GameObject, string>();
 
   #state: LevelState;
   #completed = false;
@@ -61,13 +63,22 @@ export class LevelScene extends Phaser.Scene {
       circle.setInteractive(hitArea, (area: Phaser.Geom.Circle, x: number, y: number) =>
         Phaser.Geom.Circle.Contains(area, x, y),
       );
-      circle.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => {
-        this.#tap(target.id);
-      });
 
       this.#circles.set(target.id, circle);
       this.#hitAreas.set(target.id, hitArea);
+      this.#targetIds.set(circle, target.id);
     }
+
+    // One input path, not two. A scene-level pointerdown fires for every tap and
+    // reports what was under it, so a tap on empty board is an event rather than
+    // the absence of one — which is what docs/rules.md rule 3 requires.
+    this.input.on(
+      Phaser.Input.Events.POINTER_DOWN,
+      (_pointer: Phaser.Input.Pointer, currentlyOver: readonly Phaser.GameObjects.GameObject[]) => {
+        const hit = currentlyOver[0];
+        this.#tap(hit === undefined ? null : this.#targetIds.get(hit) ?? null);
+      },
+    );
 
     this.#layout(this.scale.width, this.scale.height);
     this.scale.on(Phaser.Scale.Events.RESIZE, this.#handleResize);
@@ -93,21 +104,25 @@ export class LevelScene extends Phaser.Scene {
     }
   }
 
-  #tap(targetId: string): void {
+  #tap(targetId: string | null): void {
     if (this.#completed) return;
 
     this.#state = tapEngine.apply(this.#state, { type: 'tap', targetId });
 
-    const circle = this.#circles.get(targetId);
-    if (circle !== undefined && !this.#state.remaining.includes(targetId)) {
-      circle.disableInteractive();
-      this.tweens.add({
-        targets: circle,
-        scale: 0,
-        alpha: 0,
-        duration: 140,
-        ease: 'Quad.easeIn',
-      });
+    // A named target that is no longer remaining is one this tap just cleared;
+    // a miss — empty board, or a circle already gone — leaves the board alone.
+    if (targetId !== null && !this.#state.remaining.includes(targetId)) {
+      const circle = this.#circles.get(targetId);
+      if (circle !== undefined) {
+        circle.disableInteractive();
+        this.tweens.add({
+          targets: circle,
+          scale: 0,
+          alpha: 0,
+          duration: 140,
+          ease: 'Quad.easeIn',
+        });
+      }
     }
 
     this.#options.onStateChange(this.#state);

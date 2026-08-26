@@ -4,6 +4,11 @@ import rawLevelPack from './levels.json';
 
 export const LEVELS_SCHEMA_VERSION = 1;
 
+/** A coordinate the renderer can place: finite and inside the normalised board. */
+function isNormalised(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1;
+}
+
 /**
  * Levels are data, and data from a file is untrusted until it is checked —
  * this is the one place in the mechanic where `unknown` is the correct type.
@@ -68,18 +73,20 @@ export function parseLevelPack(raw: unknown, expectedLevelCount: number): Level[
       }
       seenTargetIds.add(id);
 
+      // Checked one axis at a time rather than in a loop: a loop validates the
+      // values but cannot narrow the variables, which is what forced an
+      // `as number` cast here — an assertion standing in for the narrowing this
+      // project promises at every untrusted boundary.
       const x = target['x'];
+      if (!isNormalised(x)) {
+        throw new Error(`${targetWhere}.x must be a number in [0, 1], got ${String(x)}.`);
+      }
       const y = target['y'];
-      for (const [axis, value] of [
-        ['x', x],
-        ['y', y],
-      ] as const) {
-        if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > 1) {
-          throw new Error(`${targetWhere}.${axis} must be a number in [0, 1], got ${String(value)}.`);
-        }
+      if (!isNormalised(y)) {
+        throw new Error(`${targetWhere}.y must be a number in [0, 1], got ${String(y)}.`);
       }
 
-      return { id, x: x as number, y: y as number };
+      return { id, x, y };
     });
 
     return { id: index + 1, targets: parsedTargets };

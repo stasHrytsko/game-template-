@@ -8,7 +8,7 @@ import {
   withOnboardingSeen,
   type ProgressState,
 } from '../../src/shell/progress/ProgressRepository.ts';
-import { NoopSignalSink } from '../../src/shell/signal/SignalSink.ts';
+import { NoopSignalSink, type SignalSink } from '../../src/shell/signal/SignalSink.ts';
 
 const GAME: GameDefinition = {
   id: 'test-game',
@@ -69,6 +69,14 @@ function click(testId: string): void {
 async function launch(initial: ProgressState = emptyProgress()): Promise<ShellApp> {
   progress = new MemoryProgressRepository(initial);
   const app = await ShellApp.create({ root, game: GAME, progress, signal, mechanic });
+  app.start();
+  return app;
+}
+
+/** Same, with a substitute sink — for asserting how the shell treats delivery. */
+async function launchWith(sink: SignalSink): Promise<ShellApp> {
+  progress = new MemoryProgressRepository(withOnboardingSeen(emptyProgress(), 2));
+  const app = await ShellApp.create({ root, game: GAME, progress, signal: sink, mechanic });
   app.start();
   return app;
 }
@@ -257,6 +265,35 @@ describe('finishing the game', () => {
     expect((await progress.load()).moreAsked).toBe(true);
   });
 
+  it('leaves the popup immediately, without waiting for the signal', async () => {
+    // NtfySignalSink allows itself 8 seconds before giving up. Awaiting it here
+    // left the player looking at a button that had visibly done nothing.
+    let settle: (() => void) | null = null;
+    const stalled: SignalSink = {
+      send: () =>
+        new Promise<void>((resolve) => {
+          settle = resolve;
+        }),
+    };
+
+    await launchWith(stalled);
+    click('play');
+    click('level-1');
+    for (let level = 0; level < GAME.levelCount; level += 1) {
+      mechanic.finishLevel();
+      await flush();
+      if (level < GAME.levelCount - 1) click('next-level');
+    }
+
+    click('more-yes');
+    await flush();
+
+    expect(settle).not.toBeNull();  // the send did start
+    expect(find('level-select')).not.toBeNull();
+    expect(find('more-popup')).toBeNull();
+    expect((await progress.load()).moreAsked).toBe(true);
+  });
+
   it('never asks a second time', async () => {
     await finishEveryLevel();
     click('more-no');
@@ -291,5 +328,22 @@ describe('android hardware back', () => {
     click('show-rules');
     expect(app.handleBack()).toBe(true);
     expect(find('main-menu')).not.toBeNull();
+  });
+
+  it('returns to the menu from the first-run onboarding, not past it', async () => {
+    // Back must not walk *forward* through a gate the player never accepted.
+    // It used to land on the level grid with onboardingVersion still unsaved.
+    const app = await launch();
+    click('play');
+    expect(find('onboarding')).not.toBeNull();
+
+    expect(app.handleBack()).toBe(true);
+    expect(find('main-menu')).not.toBeNull();
+    expect(find('level-select')).toBeNull();
+    expect((await progress.load()).onboardingVersion).toBe(0);
+
+    // And the gate still holds on the next attempt.
+    click('play');
+    expect(find('onboarding')).not.toBeNull();
   });
 });
